@@ -1,14 +1,47 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
+#include <SDL3/SDL_joystick.h>
+
+SDL_Window* window;
+SDL_Renderer* renderer;
+SDL_Surface* eye_surface;
+SDL_Texture* eye_texture;
+SDL_Rect eye_position;
+SDL_Surface* mouth_surface;
+SDL_Texture* mouth_texture;
+SDL_Event event;
+SDL_Joystick* joystick;
+
+void init_joystick() {
+    SDL_Init(SDL_INIT_JOYSTICK);
+    int joystick_count;
+    SDL_JoystickID* joysticks = SDL_GetJoysticks(&joystick_count);
+    if (joystick_count > 0) {
+        joystick = SDL_OpenJoystick(joysticks[0]);
+    }
+}
+
+float get_axis(int index) {
+    if (!joystick) return 0;
+    SDL_PumpEvents();
+    return SDL_GetJoystickAxis(joystick, index);
+}
 
 int main(int argc, char* argv[])
 {
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    SDL_Surface* surface;
-    SDL_Texture* texture;
-    SDL_Event event;
+    int i;
+    if (joystick){
+        int total;
+
+        total = SDL_GetNumJoystickAxes(joystick);
+        for (i = 0; i < total; i++) {
+           get_axis(i) / 32767.0f;  /* make it -1.0f to 1.0f */ //not sure if this gets used but eff it we ball
+        }
+        eye_position.x = get_axis(0) / 32767.0f;
+
+        eye_position.y = get_axis(1) / 32767.0f;
+    }
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
@@ -20,17 +53,29 @@ int main(int argc, char* argv[])
         return 3;
     }
 
-    surface = IMG_Load("./images/awesomesauce.png");
-    if (!surface) {
+    eye_surface = IMG_Load("./images/test_eyes.png");
+    if (!eye_surface) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create surface from image: %s", SDL_GetError());
         return 3;
     }
-    texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (!texture) {
+    eye_texture = SDL_CreateTextureFromSurface(renderer, eye_surface);
+    if (!eye_texture) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from surface: %s", SDL_GetError());
         return 3;
     }
-    SDL_DestroySurface(surface);
+    SDL_DestroySurface(eye_surface);
+
+    mouth_surface = IMG_Load("./images/test_mouth.png");
+    if (!mouth_surface) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create surface from image: %s", SDL_GetError());
+        return 3;
+    }
+    mouth_texture = SDL_CreateTextureFromSurface(renderer, mouth_surface);
+    if (!mouth_texture) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from surface: %s", SDL_GetError());
+        return 3;
+    }
+    SDL_DestroySurface(mouth_surface);
 
     while (1) {
         SDL_PollEvent(&event);
@@ -39,11 +84,13 @@ int main(int argc, char* argv[])
         }
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(renderer);
-        SDL_RenderTexture(renderer, texture, NULL, NULL);
+        SDL_RenderTexture(renderer, eye_texture, NULL, NULL);
+        SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
         SDL_RenderPresent(renderer);
     }
 
-    SDL_DestroyTexture(texture);
+    SDL_DestroyTexture(eye_texture);
+    SDL_DestroyTexture(mouth_texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 

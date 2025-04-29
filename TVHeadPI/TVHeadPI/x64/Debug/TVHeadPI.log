@@ -1,2 +1,5 @@
 ﻿  main.cpp
+C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(39,24): warning C4552: '/': result of expression not used
+C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(41,38): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(43,38): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
   TVHeadPI.vcxproj -> C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\x64\Debug\TVHeadPI.exe
