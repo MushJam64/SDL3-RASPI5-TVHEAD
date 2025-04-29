@@ -30,6 +30,9 @@ float get_axis(int index) {
 
 int main(int argc, char* argv[])
 {   
+
+    init_joystick();
+
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
         return 3;
@@ -69,15 +72,13 @@ int main(int argc, char* argv[])
         if (event.type == SDL_EVENT_QUIT) {
             break;
         }
-
-        init_joystick();
         eye_position.w = 1280;
         eye_position.h = 640;
 
      //   if (joystick) {
-            eye_position.x = get_axis(0) / 32767.0f;
+            eye_position.x = get_axis(0) / 32767.0f * 100;
 
-            eye_position.y = get_axis(1) / 32767.0f;
+            eye_position.y = get_axis(1) / 32767.0f * 100;
     //    }
 
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
