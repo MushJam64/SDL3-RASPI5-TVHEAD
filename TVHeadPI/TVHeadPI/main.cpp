@@ -30,14 +30,8 @@ float get_axis(int index) {
 
 int main(int argc, char* argv[])
 {
-    int i;
-    if (joystick){
-        int total;
 
-        total = SDL_GetNumJoystickAxes(joystick);
-        for (i = 0; i < total; i++) {
-           get_axis(i) / 32767.0f;  /* make it -1.0f to 1.0f */ //not sure if this gets used but eff it we ball
-        }
+    if (joystick){
         eye_position.x = get_axis(0) / 32767.0f;
 
         eye_position.y = get_axis(1) / 32767.0f;
