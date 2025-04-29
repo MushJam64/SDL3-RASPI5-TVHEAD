@@ -7,7 +7,7 @@ SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Surface* eye_surface;
 SDL_Texture* eye_texture;
-SDL_Rect eye_position;
+SDL_FRect eye_position;
 SDL_Surface* mouth_surface;
 SDL_Texture* mouth_texture;
 SDL_Event event;
@@ -29,14 +29,7 @@ float get_axis(int index) {
 }
 
 int main(int argc, char* argv[])
-{
-
-    if (joystick){
-        eye_position.x = get_axis(0) / 32767.0f;
-
-        eye_position.y = get_axis(1) / 32767.0f;
-    }
-
+{   
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s", SDL_GetError());
         return 3;
@@ -76,9 +69,20 @@ int main(int argc, char* argv[])
         if (event.type == SDL_EVENT_QUIT) {
             break;
         }
+
+        init_joystick();
+        eye_position.w = 1280;
+        eye_position.h = 640;
+
+     //   if (joystick) {
+            eye_position.x = get_axis(0) / 32767.0f;
+
+            eye_position.y = get_axis(1) / 32767.0f;
+    //    }
+
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(renderer);
-        SDL_RenderTexture(renderer, eye_texture, NULL, NULL);
+        SDL_RenderTexture(renderer, eye_texture, NULL, &eye_position);
         SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
         SDL_RenderPresent(renderer);
     }
