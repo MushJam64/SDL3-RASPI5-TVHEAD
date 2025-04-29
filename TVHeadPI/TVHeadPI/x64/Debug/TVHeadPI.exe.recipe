@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\TVHeadPI\x64\Debug\TVHeadPI.exe</FullPath>
+      <FullPath>C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\x64\Debug\TVHeadPI.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

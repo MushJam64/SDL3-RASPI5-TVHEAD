@@ -1,5 +1,6 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <SDL3_image/SDL_image.h>
 
 int main(int argc, char* argv[])
 {
@@ -14,12 +15,12 @@ int main(int argc, char* argv[])
         return 3;
     }
 
-    if (!SDL_CreateWindowAndRenderer("Hello SDL", 320, 240, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer("Hello SDL", 1280, 640, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window and renderer: %s", SDL_GetError());
         return 3;
     }
 
-    surface = SDL_LoadBMP("sample.bmp");
+    surface = IMG_Load("./images/awesomesauce.png");
     if (!surface) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create surface from image: %s", SDL_GetError());
         return 3;
