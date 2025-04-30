@@ -76,9 +76,9 @@ int main(int argc, char* argv[])
         eye_position.h = 640;
 
      //   if (joystick) {
-            eye_position.x = get_axis(0) / 32767.0f * 100;
+            eye_position.x = get_axis(0) / 32767.0f * 25;
 
-            eye_position.y = get_axis(1) / 32767.0f * 100;
+            eye_position.y = get_axis(1) / 32767.0f * 25;
     //    }
 
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
