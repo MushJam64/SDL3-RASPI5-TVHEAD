@@ -14,6 +14,7 @@ SDL_Event event;
 SDL_Joystick* joystick;
 
 int can_blink = true;
+float blinktimer = 0;
 int total;
 int i;
 
@@ -39,19 +40,44 @@ void check_blinking() {
 void check_rendering_eye_states() {
     check_blinking();
         if (can_blink) {
+            blinktimer++;
+            if (blinktimer <= 60){
             eye_surface = IMG_Load("./images/test_eyes.png");
-            if (eye_surface) {
+                if (eye_surface) {
                 SDL_DestroySurface(eye_surface);
+                }
             }
+            else if (blinktimer >= 60 && blinktimer <= 120) {
+                SDL_Surface* happyeyes = IMG_Load("./images/test_half.png");
+                SDL_Texture* happyeyes_texture = SDL_CreateTextureFromSurface(renderer, happyeyes);
+                SDL_DestroySurface(happyeyes);
+                SDL_RenderClear(renderer);
+                SDL_RenderTexture(renderer, happyeyes_texture, NULL, &eye_position);
+                SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
+                SDL_RenderPresent(renderer);
+                SDL_DestroyTexture(happyeyes_texture);
+            }
+            else if (blinktimer >= 120 && blinktimer <= 180) {
+                SDL_Surface* happyeyes = IMG_Load("./images/test_happy.png");
+                SDL_Texture* happyeyes_texture = SDL_CreateTextureFromSurface(renderer, happyeyes);
+                SDL_DestroySurface(happyeyes);
+                SDL_RenderClear(renderer);
+                SDL_RenderTexture(renderer, happyeyes_texture, NULL, &eye_position);
+                SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
+                SDL_RenderPresent(renderer);
+                SDL_DestroyTexture(happyeyes_texture);
+            }
+
         } else {
-            SDL_Surface* image1 = IMG_Load("./images/test_happy.png");
-            SDL_Texture* texture1 = SDL_CreateTextureFromSurface(renderer, image1);
-            SDL_DestroySurface(image1);
+            blinktimer == 0;
+            SDL_Surface* happyeyes = IMG_Load("./images/test_happy.png");
+            SDL_Texture* happyeyes_texture = SDL_CreateTextureFromSurface(renderer, happyeyes);
+            SDL_DestroySurface(happyeyes);
             SDL_RenderClear(renderer);
-            SDL_RenderTexture(renderer, texture1, NULL, &eye_position);
+            SDL_RenderTexture(renderer, happyeyes_texture, NULL, &eye_position);
             SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
             SDL_RenderPresent(renderer);
-            SDL_DestroyTexture(texture1);
+            SDL_DestroyTexture(happyeyes_texture);
         }
 }
 
