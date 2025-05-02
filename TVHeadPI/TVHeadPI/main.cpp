@@ -20,6 +20,16 @@ int blinktimer;
 int total;
 int i;
 
+enum EyeExpression {
+    NONE,
+    HAPPY,
+    SAD,
+    ANGRY,
+    SURPRISED
+};
+
+EyeExpression manual_expression = NONE;
+
 void init_joystick() {
     SDL_Init(SDL_INIT_JOYSTICK);
     int joystick_count;
@@ -31,18 +41,36 @@ void init_joystick() {
 
 void check_blinking() {
     total = SDL_GetNumJoystickButtons(joystick);
-    if (SDL_GetJoystickButton(joystick, i)) {
-        can_blink = false;
-        blinktimer = 0;
+
+    if (SDL_GetJoystickButton(joystick, 0)) {
+        manual_expression = HAPPY;
+    }
+    else if (SDL_GetJoystickButton(joystick, 1)) {
+        manual_expression = SAD;
+    }
+    else if (SDL_GetJoystickButton(joystick, 2)) {
+        manual_expression = ANGRY;
+    }
+    else if (SDL_GetJoystickButton(joystick, 3)) {
+        manual_expression = SURPRISED;
     }
     else {
+        manual_expression = NONE;
+    }
+
+    if (manual_expression == NONE) {
         can_blink = true;
         blinktimer++;
-        if (blinktimer == 860) {
+        if (blinktimer > 860) {
             blinktimer = 0;
         }
     }
+    else {
+        can_blink = false;
+        blinktimer = 0;
+    }
 }
+
 
 void check_rendering_eye_states() {
     check_blinking();
@@ -58,8 +86,35 @@ void check_rendering_eye_states() {
         } else if (blinktimer > 30 && blinktimer < 45) {
             image_path = "./images/test_closed.png";
         }
-    } else {
-        image_path = "./images/test_happy.png";
+    } 
+
+    if (manual_expression != NONE) {
+        const char* path = nullptr;
+
+        switch (manual_expression) {
+        case HAPPY:
+            path = "./images/test_happy.png";
+            break;
+        case SAD:
+            path = "./images/test_sad.png";
+            break;
+        case ANGRY:
+            path = "./images/test_angry.png";
+            break;
+        case SURPRISED:
+            path = "./images/test_surprised.png";
+            break;
+        default:
+            break;
+        }
+
+        if (path) {
+            SDL_Surface* expression_surface = IMG_Load(path);
+            SDL_Texture* expression_texture = SDL_CreateTextureFromSurface(renderer, expression_surface);
+            SDL_DestroySurface(expression_surface);
+            if (eye_texture) SDL_DestroyTexture(eye_texture);
+            eye_texture = expression_texture;
+        }
     }
 
     if (image_path) {
@@ -105,7 +160,7 @@ int main(int argc, char* argv[])
         return 3;
     }
 
-    if (!SDL_CreateWindowAndRenderer("Hello SDL", 1280, 640, SDL_WINDOW_FULLSCREEN, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer("CRT STELLE 0.1.2", 1280, 640, SDL_WINDOW_FULLSCREEN, &window, &renderer)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window and renderer: %s", SDL_GetError());
         return 3;
     }
