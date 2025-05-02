@@ -33,22 +33,28 @@ void check_blinking() {
     total = SDL_GetNumJoystickButtons(joystick);
     if (SDL_GetJoystickButton(joystick, i)) {
         can_blink = false;
+        blinktimer = 0;
     }
     else {
         can_blink = true;
+        blinktimer++;
     }
 }
 
 void check_rendering_eye_states() {
     check_blinking();
         if (can_blink) {
-            if (blinktimer == 0){
-            eye_surface = IMG_Load("./images/test_eyes.png");
-                if (eye_surface) {
-                SDL_DestroySurface(eye_surface);
-                }
+            if (blinktimer >= 0 && blinktimer < 60 || blinktimer >= 240){
+            SDL_Surface* openeyes = IMG_Load("./images/test_eyes.png");
+            SDL_Texture* openeyes_texture = SDL_CreateTextureFromSurface(renderer, openeyes);
+            SDL_DestroySurface(openeyes);
+            SDL_RenderClear(renderer);
+            SDL_RenderTexture(renderer, openeyes_texture, NULL, &eye_position);
+            SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
+            SDL_RenderPresent(renderer);
+            SDL_DestroyTexture(openeyes_texture);
             }
-            else if (blinktimer == 60) {
+            if (blinktimer >= 60 && blinktimer < 120|| blinktimer >= 180 && blinktimer <= 240) {  
                 SDL_Surface* halfeyes = IMG_Load("./images/test_half.png");
                 SDL_Texture* halfeyes_texture = SDL_CreateTextureFromSurface(renderer, halfeyes);
                 SDL_DestroySurface(halfeyes);
@@ -56,27 +62,23 @@ void check_rendering_eye_states() {
                 SDL_RenderTexture(renderer, halfeyes_texture, NULL, &eye_position);
                 SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
                 SDL_RenderPresent(renderer);
-                SDL_DestroyTexture(halfeyes_texture);
-                if (halfeyes) {
-                    SDL_DestroySurface(halfeyes);
-                }    
+                SDL_DestroyTexture(halfeyes_texture);    
             } 
-            else if (blinktimer == 120) {
-                SDL_Surface* happyeyes = IMG_Load("./images/test_happy.png");
-                SDL_Texture* happyeyes_texture = SDL_CreateTextureFromSurface(renderer, happyeyes);
-                SDL_DestroySurface(happyeyes);
+            if (blinktimer > 120 && blinktimer < 180) {
+                SDL_Surface* closedeyes = IMG_Load("./images/test_closed.png");
+                SDL_Texture* closedeyes_texture = SDL_CreateTextureFromSurface(renderer, closedeyes);
+                SDL_DestroySurface(closedeyes);
                 SDL_RenderClear(renderer);
-                SDL_RenderTexture(renderer, happyeyes_texture, NULL, &eye_position);
+                SDL_RenderTexture(renderer, closedeyes_texture, NULL, &eye_position);
                 SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
                 SDL_RenderPresent(renderer);
-                SDL_DestroyTexture(happyeyes_texture);
-                if (happyeyes) {
-                    SDL_DestroySurface(happyeyes);
-                }    
+                SDL_DestroyTexture(closedeyes_texture); 
             } 
+            else if (blinktimer == 860) {
+                blinktimer = 0;
+            }
         }
             else {
-        //    blinktimer = 0;
             SDL_Surface* happyeyes = IMG_Load("./images/test_happy.png");
             SDL_Texture* happyeyes_texture = SDL_CreateTextureFromSurface(renderer, happyeyes);
             SDL_DestroySurface(happyeyes);
@@ -147,7 +149,7 @@ int main(int argc, char* argv[])
         }
         eye_position.w = 1280;
         eye_position.h = 640;
-        blinktimer++;
+        
 
         check_rendering_eye_states();
 
