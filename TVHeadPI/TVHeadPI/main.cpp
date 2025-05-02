@@ -38,6 +38,9 @@ void check_blinking() {
     else {
         can_blink = true;
         blinktimer++;
+        if (blinktimer == 860) {
+            blinktimer = 0;
+        }
     }
 }
 
@@ -48,14 +51,12 @@ void check_rendering_eye_states() {
     const char* image_path = nullptr;
 
     if (can_blink) {
-        if ((blinktimer >= 0 && blinktimer < 60) || (blinktimer >= 240)) {
+        if ((blinktimer >= 0 && blinktimer < 15) || (blinktimer >= 60)) {
             image_path = "./images/test_eyes.png";
-        } else if ((blinktimer >= 60 && blinktimer < 120) || (blinktimer >= 180 && blinktimer <= 240)) {
+        } else if ((blinktimer >= 15 && blinktimer < 30) || (blinktimer >= 45 && blinktimer <= 60)) {
             image_path = "./images/test_half.png";
-        } else if (blinktimer > 120 && blinktimer < 180) {
+        } else if (blinktimer > 30 && blinktimer < 45) {
             image_path = "./images/test_closed.png";
-        } else if (blinktimer == 860) {
-            blinktimer = 0;
         }
     } else {
         image_path = "./images/test_happy.png";
