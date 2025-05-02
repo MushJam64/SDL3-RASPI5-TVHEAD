@@ -2,6 +2,7 @@
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3/SDL_joystick.h>
+#include <stdio.h> 
 
 SDL_Window* window;
 SDL_Renderer* renderer;
@@ -14,7 +15,7 @@ SDL_Event event;
 SDL_Joystick* joystick;
 
 int can_blink = true;
-float blinktimer = 0;
+float blinktimer;
 int total;
 int i;
 
@@ -69,7 +70,7 @@ void check_rendering_eye_states() {
             }
 
         } else {
-            blinktimer == 0;
+            blinktimer = 0;
             SDL_Surface* happyeyes = IMG_Load("./images/test_happy.png");
             SDL_Texture* happyeyes_texture = SDL_CreateTextureFromSurface(renderer, happyeyes);
             SDL_DestroySurface(happyeyes);
@@ -147,6 +148,8 @@ int main(int argc, char* argv[])
 
             eye_position.y = get_axis(1) / 32767.0f * 25;
     //    }
+
+        printf("BlinkTimer: %d\n", blinktimer);
 
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0x00);
         SDL_RenderClear(renderer);

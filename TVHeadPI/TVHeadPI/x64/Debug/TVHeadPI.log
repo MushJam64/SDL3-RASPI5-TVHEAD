@@ -1,4 +1,1 @@
-﻿  main.cpp
-C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(72,24): warning C4553: '==': result of expression not used; did you intend '='?
-C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(146,24): warning C4553: '==': result of expression not used; did you intend '='?
-  TVHeadPI.vcxproj -> C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\x64\Debug\TVHeadPI.exe
+﻿  TVHeadPI.vcxproj -> C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\x64\Debug\TVHeadPI.exe
