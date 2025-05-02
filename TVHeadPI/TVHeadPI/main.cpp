@@ -13,6 +13,10 @@ SDL_Texture* mouth_texture;
 SDL_Event event;
 SDL_Joystick* joystick;
 
+int can_blink = true;
+int total;
+int i;
+
 void init_joystick() {
     SDL_Init(SDL_INIT_JOYSTICK);
     int joystick_count;
@@ -22,10 +26,44 @@ void init_joystick() {
     }
 }
 
+void check_blinking() {
+    total = SDL_GetNumJoystickButtons(joystick);
+    if (SDL_GetJoystickButton(joystick, i)) {
+        can_blink = false;
+    }
+    else {
+        can_blink = true;
+    }
+}
+
+void check_rendering_eye_states() {
+    check_blinking();
+        if (can_blink) {
+            eye_surface = IMG_Load("./images/test_eyes.png");
+            if (eye_surface) {
+                SDL_DestroySurface(eye_surface);
+            }
+        } else {
+            SDL_Surface* image1 = IMG_Load("./images/test_happy.png");
+            SDL_Texture* texture1 = SDL_CreateTextureFromSurface(renderer, image1);
+            SDL_DestroySurface(image1);
+            SDL_RenderClear(renderer);
+            SDL_RenderTexture(renderer, texture1, NULL, &eye_position);
+            SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
+            SDL_RenderPresent(renderer);
+            SDL_DestroyTexture(texture1);
+        }
+}
+
 float get_axis(int index) {
     if (!joystick) return 0;
     SDL_PumpEvents();
     return SDL_GetJoystickAxis(joystick, index);
+}
+
+int controller_num_buttons() {
+    if (!joystick) return 0;
+    return SDL_GetNumJoystickButtons(joystick);
 }
 
 int main(int argc, char* argv[])
@@ -48,6 +86,7 @@ int main(int argc, char* argv[])
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create surface from image: %s", SDL_GetError());
         return 3;
     }
+    
     eye_texture = SDL_CreateTextureFromSurface(renderer, eye_surface);
     if (!eye_texture) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture from surface: %s", SDL_GetError());
@@ -74,6 +113,8 @@ int main(int argc, char* argv[])
         }
         eye_position.w = 1280;
         eye_position.h = 640;
+
+        check_rendering_eye_states();
 
      //   if (joystick) {
             eye_position.x = get_axis(0) / 32767.0f * 25;
