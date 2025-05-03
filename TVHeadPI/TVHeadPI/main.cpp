@@ -26,6 +26,7 @@ enum EyeExpression {
 
 EyeExpression manual_expression = NONE;
 bool konami_active = false;
+bool konami_played_once = false;
 
 std::vector<int> input_buffer;
 const std::vector<int> konami_code = {12, 12, 13, 13, 14, 15, 14, 15, 1, 0};
@@ -34,6 +35,17 @@ IMG_Animation* gif_animation = nullptr;
 int gif_frame = 0;
 Uint64 gif_last_time = 0;
 bool gif_loaded = false;
+
+void debug_print_joystick_buttons() {
+    if (!joystick) return;
+    SDL_PumpEvents();
+    int num_buttons = SDL_GetNumJoystickButtons(joystick);
+    for (int i = 0; i < num_buttons; ++i) {
+        if (SDL_GetJoystickButton(joystick, i)) {
+            printf("Button %d is pressed\n", i);
+        }
+    }
+}
 
 void init_joystick() {
     SDL_Init(SDL_INIT_JOYSTICK);
@@ -68,7 +80,7 @@ void check_rendering_eye_states() {
             case HAPPY: path = "./images/test_happy.png"; break;
             case SAD: path = "./images/test_sad.png"; break;
             case ANGRY: path = "./images/test_angry.png"; break;
-            case SURPRISED: path = "./images/test_surprised.png"; break;
+            case SURPRISED: path = "./images/test_shocked.png"; break;
             default: break;
         }
     } else {
@@ -103,7 +115,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    if (!SDL_CreateWindowAndRenderer("SDL Konami", 1280, 640, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
+    if (!SDL_CreateWindowAndRenderer("CRT STELLE", 1280, 640, SDL_WINDOW_RESIZABLE, &window, &renderer)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create window/renderer: %s", SDL_GetError());
         return 1;
     }
@@ -123,20 +135,34 @@ int main(int argc, char* argv[]) {
 
             if (event.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN) {
                 input_buffer.push_back(event.jbutton.button);
-                if (input_buffer.size() > konami_code.size()) {
-                    input_buffer.erase(input_buffer.begin());
-                }
-                if (input_buffer == konami_code) {
-                    konami_active = true;
-                    gif_frame = 0;
-                    gif_last_time = SDL_GetTicks();
+            }
+
+            if (event.type == SDL_EVENT_JOYSTICK_HAT_MOTION) {
+                switch (event.jhat.value) {
+                case SDL_HAT_UP: input_buffer.push_back(12); break;
+                case SDL_HAT_DOWN: input_buffer.push_back(13); break;
+                case SDL_HAT_LEFT: input_buffer.push_back(14); break;
+                case SDL_HAT_RIGHT: input_buffer.push_back(15); break;
+                default: break;
                 }
             }
 
+            if (input_buffer.size() > konami_code.size()) {
+                input_buffer.erase(input_buffer.begin());
+            }
+            if (input_buffer == konami_code && !konami_played_once) {
+                konami_active = true;
+                konami_played_once = true;
+                gif_frame = 0;
+                gif_last_time = SDL_GetTicks();
+            }
+
+            // Press "esc" key to trigger Konami Easter Egg manually
             if (event.type == SDL_EVENT_KEY_DOWN) {
                 /* the pressed key was Escape? */
                 if (event.key.key == SDLK_ESCAPE) {
                     konami_active = true;
+                    konami_played_once = true;
                     gif_frame = 0;
                     gif_last_time = SDL_GetTicks();
                 }
@@ -151,17 +177,26 @@ int main(int argc, char* argv[]) {
         if (konami_active && gif_loaded) {
             Uint64 now = SDL_GetTicks();
             if (now - gif_last_time > gif_animation->delays[gif_frame]) {
-                gif_frame = (gif_frame + 1) % gif_animation->count;
+                gif_frame++;
                 gif_last_time = now;
             }
 
-            SDL_Texture* frame_texture = SDL_CreateTextureFromSurface(renderer, gif_animation->frames[gif_frame]);
-            SDL_RenderClear(renderer);
-            SDL_RenderTexture(renderer, frame_texture, NULL, NULL);
-            SDL_RenderPresent(renderer);
-            SDL_DestroyTexture(frame_texture);
-            continue;
+            if (gif_frame < gif_animation->count) {
+                SDL_Texture* frame_texture = SDL_CreateTextureFromSurface(renderer, gif_animation->frames[gif_frame]);
+                SDL_RenderClear(renderer);
+                SDL_RenderTexture(renderer, frame_texture, NULL, NULL);
+                SDL_RenderPresent(renderer);
+                SDL_DestroyTexture(frame_texture);
+                printf("SO RETROOOOO\n");
+                continue;
+            } else {
+                konami_active = false;
+                konami_played_once = false;
+                input_buffer.clear(); // Optional: clear buffer to avoid instant retrigger
+            }
         }
+
+        debug_print_joystick_buttons();
 
         check_rendering_eye_states();
 
