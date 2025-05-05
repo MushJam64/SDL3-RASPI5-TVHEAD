@@ -11,6 +11,7 @@ SDL_Renderer* renderer;
 SDL_Texture* eye_texture;
 SDL_Texture* mouth_texture;
 SDL_FRect eye_position;
+SDL_FRect mouth_position;
 SDL_Event event;
 SDL_Joystick* joystick;
 
@@ -24,12 +25,22 @@ enum EyeExpression {
     SURPRISED
 };
 
+enum MouthExpression {
+    MOUTH_NONE,
+    MOUTH_HAPPY,
+    MOUTH_SAD,
+    MOUTH_ANGRY,
+    MOUTH_SURPRISED
+};
+
 EyeExpression manual_expression = NONE;
+MouthExpression mouth_expression = MOUTH_NONE;
+
 bool konami_active = false;
 bool konami_played_once = false;
 
 std::vector<int> input_buffer;
-const std::vector<int> konami_code = {12, 12, 13, 13, 14, 15, 14, 15, 1, 0};
+const std::vector<int> konami_code = { 12, 12, 13, 13, 14, 15, 14, 15, 1, 0 };
 
 IMG_Animation* gif_animation = nullptr;
 int gif_frame = 0;
@@ -57,17 +68,60 @@ void init_joystick() {
 }
 
 void check_blinking() {
-    if (SDL_GetJoystickButton(joystick, 0)) manual_expression = HAPPY;
-    else if (SDL_GetJoystickButton(joystick, 1)) manual_expression = SAD;
-    else if (SDL_GetJoystickButton(joystick, 2)) manual_expression = ANGRY;
-    else if (SDL_GetJoystickButton(joystick, 3)) manual_expression = SURPRISED;
-    else manual_expression = NONE;
+    SDL_PumpEvents(); // Update hat state
+    Uint8 hat = SDL_GetJoystickHat(joystick, 0);
+
+    switch (hat) {
+    case SDL_HAT_UP:
+        manual_expression = HAPPY;
+        break;
+    case SDL_HAT_DOWN:
+        manual_expression = SAD;
+        break;
+    case SDL_HAT_LEFT:
+        manual_expression = ANGRY;
+        break;
+    case SDL_HAT_RIGHT:
+        manual_expression = SURPRISED;
+        break;
+    default:
+        manual_expression = NONE;
+        break;
+    }
 
     if (manual_expression == NONE) {
         blinktimer++;
         if (blinktimer > 860) blinktimer = 0;
-    } else {
+    }
+    else {
         blinktimer = 0;
+    }
+}
+
+void check_mouth_expression() {
+    if (SDL_GetJoystickButton(joystick, 0)) mouth_expression = MOUTH_HAPPY;
+    else if (SDL_GetJoystickButton(joystick, 1)) mouth_expression = MOUTH_SAD;
+    else if (SDL_GetJoystickButton(joystick, 2)) mouth_expression = MOUTH_ANGRY;
+    else if (SDL_GetJoystickButton(joystick, 3)) mouth_expression = MOUTH_SURPRISED;
+    else mouth_expression = MOUTH_NONE;
+
+    const char* path = nullptr;
+    switch (mouth_expression) {
+    case MOUTH_HAPPY: path = "./images/mouth_happy.png"; break;
+    case MOUTH_SAD: path = "./images/mouth_sad.png"; break;
+    case MOUTH_ANGRY: path = "./images/mouth_angry.png"; break;
+    case MOUTH_SURPRISED: path = "./images/mouth_surprised.png"; break;
+    default: path = "./images/test_mouth.png"; break;
+    }
+
+    if (path) {
+        SDL_Surface* surf = IMG_Load(path);
+        if (surf) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+            SDL_DestroySurface(surf);
+            if (mouth_texture) SDL_DestroyTexture(mouth_texture);
+            mouth_texture = tex;
+        }
     }
 }
 
@@ -77,13 +131,14 @@ void check_rendering_eye_states() {
 
     if (manual_expression != NONE) {
         switch (manual_expression) {
-            case HAPPY: path = "./images/test_happy.png"; break;
-            case SAD: path = "./images/test_sad.png"; break;
-            case ANGRY: path = "./images/test_angry.png"; break;
-            case SURPRISED: path = "./images/test_shocked.png"; break;
-            default: break;
+        case HAPPY: path = "./images/test_happy.png"; break;
+        case SAD: path = "./images/test_sad.png"; break;
+        case ANGRY: path = "./images/test_angry.png"; break;
+        case SURPRISED: path = "./images/test_shocked.png"; break;
+        default: break;
         }
-    } else {
+    }
+    else {
         if ((blinktimer >= 0 && blinktimer < 60) || (blinktimer >= 240))
             path = "./images/test_eyes.png";
         else if ((blinktimer >= 60 && blinktimer < 120) || (blinktimer >= 180 && blinktimer <= 240))
@@ -94,10 +149,12 @@ void check_rendering_eye_states() {
 
     if (path) {
         SDL_Surface* surf = IMG_Load(path);
-        SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
-        SDL_DestroySurface(surf);
-        if (eye_texture) SDL_DestroyTexture(eye_texture);
-        eye_texture = tex;
+        if (surf) {
+            SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+            SDL_DestroySurface(surf);
+            if (eye_texture) SDL_DestroyTexture(eye_texture);
+            eye_texture = tex;
+        }
     }
 }
 
@@ -157,9 +214,7 @@ int main(int argc, char* argv[]) {
                 gif_last_time = SDL_GetTicks();
             }
 
-            // Press "esc" key to trigger Konami Easter Egg manually
             if (event.type == SDL_EVENT_KEY_DOWN) {
-                /* the pressed key was Escape? */
                 if (event.key.key == SDLK_ESCAPE) {
                     konami_active = true;
                     konami_played_once = true;
@@ -169,10 +224,24 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        int win_width, win_height;
+        SDL_GetWindowSize(window, &win_width, &win_height);
+
+        // Eye texture centered with joystick offset
         eye_position.w = 1280;
         eye_position.h = 640;
-        eye_position.x = get_axis(0) / 32767.0f * 25;
-        eye_position.y = get_axis(1) / 32767.0f * 25;
+        float eye_offset_x = get_axis(0) / 32767.0f * 25;
+        float eye_offset_y = get_axis(1) / 32767.0f * 25;
+        eye_position.x = (win_width - eye_position.w) / 2 + eye_offset_x;
+        eye_position.y = (win_height - eye_position.h) / 2 + eye_offset_y;
+
+        // Mouth texture centered with right stick offset
+        mouth_position.w = 1280;
+        mouth_position.h = 640;
+        float mouth_offset_x = get_axis(2) / 32767.0f * 25;
+        float mouth_offset_y = get_axis(3) / 32767.0f * 25;
+        mouth_position.x = (win_width - mouth_position.w) / 2 + mouth_offset_x;
+        mouth_position.y = (win_height - mouth_position.h) / 2 + mouth_offset_y;
 
         if (konami_active && gif_loaded) {
             Uint64 now = SDL_GetTicks();
@@ -187,23 +256,24 @@ int main(int argc, char* argv[]) {
                 SDL_RenderTexture(renderer, frame_texture, NULL, NULL);
                 SDL_RenderPresent(renderer);
                 SDL_DestroyTexture(frame_texture);
-                printf("SO RETROOOOO\n");
                 continue;
-            } else {
+            }
+            else {
                 konami_active = false;
                 konami_played_once = false;
-                input_buffer.clear(); // Optional: clear buffer to avoid instant retrigger
+                input_buffer.clear();
             }
         }
 
         debug_print_joystick_buttons();
 
         check_rendering_eye_states();
+        check_mouth_expression();
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
         SDL_RenderTexture(renderer, eye_texture, NULL, &eye_position);
-        SDL_RenderTexture(renderer, mouth_texture, NULL, NULL);
+        SDL_RenderTexture(renderer, mouth_texture, NULL, &mouth_position);
         SDL_RenderPresent(renderer);
     }
 
