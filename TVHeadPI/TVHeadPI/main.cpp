@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
             if (event.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN) {
                 input_buffer.push_back(event.jbutton.button);
 
-                if (event.jbutton.button == 9) {
+                if (event.jbutton.button == 4) { //depends on the controller switch this to 9 if i have the PS controller else it's 4
                     expressions_locked = !expressions_locked;
                     if (expressions_locked) {
                         locked_eye_expression = manual_expression;
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
         check_rendering_eye_states();
         check_mouth_expression();
 
-        SDL_SetRenderDrawColor(renderer, 102, 0, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
         SDL_RenderTexture(renderer, eye_texture, NULL, &eye_position);
         SDL_RenderTexture(renderer, mouth_texture, NULL, &mouth_position);
