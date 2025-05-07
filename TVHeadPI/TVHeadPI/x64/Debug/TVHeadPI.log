@@ -1,2 +1,6 @@
 ﻿  main.cpp
+C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(239,26): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(240,26): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(246,28): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\TVHeadPI\main.cpp(247,28): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
   TVHeadPI.vcxproj -> C:\Users\MushJam\Documents\Mushjam Projects\Tvhead\SDL3-RASPI5-TVHEAD\TVHeadPI\x64\Debug\TVHeadPI.exe

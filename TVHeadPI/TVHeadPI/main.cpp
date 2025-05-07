@@ -1,3 +1,4 @@
+
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3_image/SDL_image.h>
@@ -39,6 +40,10 @@ MouthExpression mouth_expression = MOUTH_NONE;
 bool konami_active = false;
 bool konami_played_once = false;
 
+bool expressions_locked = false;
+EyeExpression locked_eye_expression = NONE;
+MouthExpression locked_mouth_expression = MOUTH_NONE;
+
 std::vector<int> input_buffer;
 const std::vector<int> konami_code = { 12, 12, 13, 13, 14, 15, 14, 15, 1, 0 };
 
@@ -68,25 +73,15 @@ void init_joystick() {
 }
 
 void check_blinking() {
-    SDL_PumpEvents(); // Update hat state
+    SDL_PumpEvents();
     Uint8 hat = SDL_GetJoystickHat(joystick, 0);
 
     switch (hat) {
-    case SDL_HAT_UP:
-        manual_expression = HAPPY;
-        break;
-    case SDL_HAT_DOWN:
-        manual_expression = SAD;
-        break;
-    case SDL_HAT_LEFT:
-        manual_expression = ANGRY;
-        break;
-    case SDL_HAT_RIGHT:
-        manual_expression = SURPRISED;
-        break;
-    default:
-        manual_expression = NONE;
-        break;
+    case SDL_HAT_UP: manual_expression = HAPPY; break;
+    case SDL_HAT_DOWN: manual_expression = SAD; break;
+    case SDL_HAT_LEFT: manual_expression = ANGRY; break;
+    case SDL_HAT_RIGHT: manual_expression = SURPRISED; break;
+    default: manual_expression = NONE; break;
     }
 
     if (manual_expression == NONE) {
@@ -94,11 +89,13 @@ void check_blinking() {
         if (blinktimer > 860) blinktimer = 0;
     }
     else {
-        blinktimer = 0;
+        blinktimer = 140;
     }
 }
 
 void check_mouth_expression() {
+    if (expressions_locked) return;
+
     if (SDL_GetJoystickButton(joystick, 0)) mouth_expression = MOUTH_HAPPY;
     else if (SDL_GetJoystickButton(joystick, 1)) mouth_expression = MOUTH_SAD;
     else if (SDL_GetJoystickButton(joystick, 2)) mouth_expression = MOUTH_ANGRY;
@@ -126,11 +123,15 @@ void check_mouth_expression() {
 }
 
 void check_rendering_eye_states() {
-    check_blinking();
-    const char* path = nullptr;
+    if (!expressions_locked) {
+        check_blinking();
+    }
 
-    if (manual_expression != NONE) {
-        switch (manual_expression) {
+    const char* path = nullptr;
+    EyeExpression current_eye_expression = expressions_locked ? locked_eye_expression : manual_expression;
+
+    if (current_eye_expression != NONE) {
+        switch (current_eye_expression) {
         case HAPPY: path = "./images/test_happy.png"; break;
         case SAD: path = "./images/test_sad.png"; break;
         case ANGRY: path = "./images/test_angry.png"; break;
@@ -139,11 +140,11 @@ void check_rendering_eye_states() {
         }
     }
     else {
-        if ((blinktimer >= 0 && blinktimer < 60) || (blinktimer >= 240))
+        if ((blinktimer >= 0 && blinktimer < 30) || (blinktimer >= 120))
             path = "./images/test_eyes.png";
-        else if ((blinktimer >= 60 && blinktimer < 120) || (blinktimer >= 180 && blinktimer <= 240))
+        else if ((blinktimer >= 30 && blinktimer < 60) || (blinktimer >= 90 && blinktimer <= 120))
             path = "./images/test_half.png";
-        else if (blinktimer > 120 && blinktimer < 180)
+        else if (blinktimer > 60 && blinktimer < 90)
             path = "./images/test_closed.png";
     }
 
@@ -192,6 +193,14 @@ int main(int argc, char* argv[]) {
 
             if (event.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN) {
                 input_buffer.push_back(event.jbutton.button);
+
+                if (event.jbutton.button == 9) {
+                    expressions_locked = !expressions_locked;
+                    if (expressions_locked) {
+                        locked_eye_expression = manual_expression;
+                        locked_mouth_expression = mouth_expression;
+                    }
+                }
             }
 
             if (event.type == SDL_EVENT_JOYSTICK_HAT_MOTION) {
@@ -227,17 +236,15 @@ int main(int argc, char* argv[]) {
         int win_width, win_height;
         SDL_GetWindowSize(window, &win_width, &win_height);
 
-        // Eye texture centered with joystick offset
-        eye_position.w = 1280;
-        eye_position.h = 640;
+        eye_position.w = win_width;
+        eye_position.h = win_height;
         float eye_offset_x = get_axis(0) / 32767.0f * 25;
         float eye_offset_y = get_axis(1) / 32767.0f * 25;
         eye_position.x = (win_width - eye_position.w) / 2 + eye_offset_x;
         eye_position.y = (win_height - eye_position.h) / 2 + eye_offset_y;
 
-        // Mouth texture centered with right stick offset
-        mouth_position.w = 1280;
-        mouth_position.h = 640;
+        mouth_position.w = win_width;
+        mouth_position.h = win_height;
         float mouth_offset_x = get_axis(2) / 32767.0f * 25;
         float mouth_offset_y = get_axis(3) / 32767.0f * 25;
         mouth_position.x = (win_width - mouth_position.w) / 2 + mouth_offset_x;
@@ -266,11 +273,10 @@ int main(int argc, char* argv[]) {
         }
 
         debug_print_joystick_buttons();
-
         check_rendering_eye_states();
         check_mouth_expression();
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_SetRenderDrawColor(renderer, 102, 0, 255, 255);
         SDL_RenderClear(renderer);
         SDL_RenderTexture(renderer, eye_texture, NULL, &eye_position);
         SDL_RenderTexture(renderer, mouth_texture, NULL, &mouth_position);
