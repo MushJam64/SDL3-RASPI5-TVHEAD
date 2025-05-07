@@ -16,7 +16,7 @@ SDL_FRect mouth_position;
 SDL_Event event;
 SDL_Joystick* joystick;
 
-int blinktimer = 0;
+int blinktimer = 33; //we start at 33 so no insta-blink shit
 
 enum EyeExpression {
     NONE,
@@ -140,11 +140,11 @@ void check_rendering_eye_states() {
         }
     }
     else {
-        if ((blinktimer >= 0 && blinktimer < 30) || (blinktimer >= 120))
+        if ((blinktimer >= 0 && blinktimer < 8) || (blinktimer >= 32))
             path = "./images/test_eyes.png";
-        else if ((blinktimer >= 30 && blinktimer < 60) || (blinktimer >= 90 && blinktimer <= 120))
+        else if ((blinktimer >= 8 && blinktimer < 16) || (blinktimer >= 24 && blinktimer <= 32))
             path = "./images/test_half.png";
-        else if (blinktimer > 60 && blinktimer < 90)
+        else if (blinktimer > 16 && blinktimer < 24)
             path = "./images/test_closed.png";
     }
 
